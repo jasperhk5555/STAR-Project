@@ -1,0 +1,83 @@
+---
+title: "Jasper Cheng's Project 1 Discussion Report"
+author: "Jasper Cheng 917673782 Group 1"
+date: "(Date on which the report is written)"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+***
+
+Note: 
+
+- Each student needs to write up the report on their own for Project 1. 
+
+- This report is **not** a traditional peer-review report. It is the author(s) of the report under review that needs to summarize their reviewers' comments after the group discussion. 
+
+- This template provides only a suggestion. You may use other templates or formats that you are comfortable with. 
+
+- **Remove these remarks in your submission.**
+
+***
+
+
+# Overall impression
+
+<span style='color:blue'> 
+Begin the review with your overall impression on the report under review. This section can be seen as the abstract of the peer-review report. The goal is to help readers to quickly grasp the essence of the reviewers' opinion. In a sense, you should make your points concisely here, and provide detailed supporting evidence in the next two sections. 
+</span> 
+
+
+- <span style='color:blue'> It is good practice to summarize the report under review in your own words (very briefly). This reflects your understanding of the report, which would make your comments more convincing. </span>
+- <span style='color:blue'>State your assessments of the report under review, along with brief reasons. Your assessments could be as simple as "this report meets the expectation" (see the grading rubrics for details), but your readers will appreciate some elaboration. 
+</span>
+
+# Major comments 
+
+<span style='color:blue'> 
+List all major issues you have found. You need to explain why you find these issues problematic and, if possible, how to fix them. 
+You can also list any merits you have found in the report. 
+Keep in mind that these comments should be *constructive*, meaning that they are intended to help the authors to improve their analysis. 
+
+Several examples from previous years' reports, in the "Exceeds expectation" group, are provided as follows.
+</span> 
+
+<span style='color:red'>
+**(Example 1)** The last paragraph/bullet point in the descriptive analysis section is very unclear. Specifically, this section: ".[W]e then take the average of the math scaled scores based on the remaining 6334 observations. We are then left with 325 observations with teachers as the unit." 
+It is unclear from this how you ended up with your final 325 observations. If you simply took the average of math scaled scores, that would give you only a single summary statistic, not 325. If you took the average math scores across all students belonging to a single teacher that needs to be explicitly stated. Otherwise, it will confuse readers who may not have the same experience doing this analysis as you. Additionally, you need to explain how this allows you to treat the teacher as the unit for the remaining analysis should be explained. There are many ways to treat the teacher as the unit for this type of analysis, so why you chose this method also requires some small amount of explanation. (Why average the math scores of a teacher's students, for example. Why not some other measurement of the teacher's "success.").
+</span>
+
+<span style='color:red'>
+**(Example 2)** The team chose median as the statistic to represent the performance of a teacher for its robustness against potential outliers. However, more evidence from the original dataset is needed since the statement was too general. If we plot some histograms of the distribution of math scores of some teachers (within the some classes), those histograms do not follow the same pattern and are sometimes asymmetric, so the sample mean of scores is not suitable in this case.
+</span>
+
+<span style='color:red'>
+**(Example 3)** In this experimental study, we are primarily interested in the effect of the treatment (class type) on the outcome (1st grade math scores). The authors may want to think deeper about how including the school indicator serves to support the conclusion that they want to make regarding the influence of class type on math scores. Simply showing math scores differ in schools seems to be irrelevant. It was a good start that the authors explored the block design of the experiment.
+</span>
+
+
+<span style='color:red'>
+**(Example 4)** The report stretches an interesting causal inference chapter. The FEP approach is new to me, and I enjoyed to learn about it. The connection between this approach and causal inference is also interesting. The conclusion stated in the end, that there is a difference in the math scores between small and regular class sizes, is a legitimate causal inference. I wonder why it violates the SUTVA assumption. I would also add a discussion about the ignorability assumption.
+</span>
+
+<span style='color:red'>
+**(Example 5)** Satisfactory justification of the model choice: It shows the model assumptions such as normality and constant variance of the error terms are satisfied by using normal QQ plot and the residual vs. fitted values plot. It also provides an explaination on why the interaction term is not included in the factor effect model. However, the report should also explain why the school ID is introduced in the model while we are only interested in the effect of class type on the math scores. I would recommend elaborating on what it means by "this allows us to adjust for the different schools that teachers are in." in the introduction.
+</span>
+
+# Minor comments 
+
+<span style='color:blue'> 
+List all minor issues you have found, along with suggestions to fix them. Minor issues include typos, failed hyperlinks, poor graphics, etc. 
+</span> 
+
+
+# Question to address during the final presentation
+
+<span style='color:blue'>
+This section only applies to the final project. As the presentation is done asynchronously, we will collect questions in this asynchronous way. We will select five questions from here for the presenters to answer in the recorded presentation. If there are fewer than five questions provided in this discussion report, the instructor and TA will generate the remaining questions. 
+</span>

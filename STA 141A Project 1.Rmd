@@ -1,0 +1,401 @@
+---
+title: "How Does Class Type Affect Students' Math Achievement In Grade 1?"
+author: "Jasper Cheng 917673782"
+date: "01/30/2021"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+library(tidyverse)
+library(ggplot2)
+library(haven)
+```
+
+***
+
+# Abstract 
+
+<span>
+Through the well known dataset, Tennessee's Student Teacher Achievement Ratio, this report will attempt to find an answer to the question "How Does Class Type Affect Students' Math Achievement In Grade 1?". Knowledge on which class type leading to better performance has an influence on a societal level. By using the predictors of class type (small, regular, regular+aide) and school, a two-way ANOVA model will be fit towards the median Stanford Achievement Test scores on math for each class of Grade 1s. The findings of the model shows that both class type and school has a significant effect on the math achievement of Grade 1s. To quantify the magnitude of influence, the Tukey Range Test concludes that small classes have a significant positive effect relative to regular and regular+aide classes. On the other hand, there is no significant difference between regular and regular+aide classes in terms of math achievements for Grade 1s. 
+</span>
+
+***
+
+# Introduction
+
+<span>
+In economics, education is considered an investment in human capital, which higher achievers tend to earn a better wage and drive the society better. (Becker, 2009) The correlation between academic achievement and a society's growth in the long run reflects the importance of quality education, and how to further boost students' achievement. Through the Tennessee's Student Teacher Achievement Ratio study (Achilles, Bain, Bellott, Boyd-Zaharias, Finn, Folger, Johnston and Word, 2008), we are able to analyze ways to improve student achievement, specifically through class size, and other factors. Gaining reliable results and methods to better student achievement will be crucial to accelerate growth in society no matter for developed or developing regions.
+
+To keep the analysis concise,focused, and accurate, this report attempts to discover if class size does have an effect on Grade 1 students' achievement in math, and if yes, how. Thus asking the question, "How Does Class Type Affect Students' Math Achievement In Grade 1?". The reasoning behind choosing Grade 1 is because it is believed that the first year of elementary represents a huge transition to children that introduces and builds foundation for further academic interests (Palardy, 2008). Math achievement is chosen as the outcome of this report, because of its reliability, while reading or literacy are mostly graded objectively by the grader, math scores are graded according to the subjective correctness of an answer. The nature of math is also a good representation of intuition, logic, and problem solving skills of a child.
+
+Since existing research shows that lower class size in early education are beneficial to a student's achievement in the long run (Chingos and Whitehurst, 2011). Another analysis proves that small classes does have a immediate, positive effect on overall student achievement, especially in Grade 1, relative to other grades (Folger and Breda, 1989). Therefore, it is hypothesized that the class type with a smaller class size will have a significant, positive influence on students' math achievement in Grade 1. 
+</span>   
+
+```{r Data Processing, echo=FALSE, include=FALSE}
+##Processing raw dataset from Harvard dataverse (Achilles, Bain, Bellott, Boyd-Zaharias, Finn, Folger, Johnston and Word, 2008)
+STAR <- read_sav("STAR_Students.sav")
+
+```
+
+***
+
+# Background
+
+```{r Background, echo=FALSE, include=FALSE}
+##Choosing Relevant Variables
+attr(STAR$g1tmathss, "label")
+attr(STAR$g1schid, "label")
+attr(STAR$g1classtype, "label")
+attr(STAR$g1classtype, "labels")
+attr(STAR$g1tchid, "label")
+variables <- c("g1tmathss", "g1schid", "g1classtype", "g1tchid")
+
+```
+<span>
+The Tennessee's Student Teacher Achievement Ration (STAR) is an extended and thorough study that tries to explore the correlation between class size and student achievement in the late 1980s. With an overwhelming amount of observations, variables, and length of the study, this dataset has been a popular example to use in academic occasions.
+
+The 4 year-long study followed the target students in Tennessee from kindergarten to Grade 3. Researchers picked schools that offer three class sizes (experimental condition): <strong>a small class (S) with 13-17 students, a
+regular class (R ) with 22-25 students, or a regular class with a full-time teacher aide
+(RA) and 22-25 students</strong>. Data is then collected by enrolling the participating students into these classes randomly to maintain unbiased. Data collected information on students, teachers and schools (Finn, Boyd-Zaharias, Fish and Gerber, 2007). Student data includes:
+<ul>
+  <li>Demographic Variables</li>
+  <li>School and class identifiers</li>
+  <li>School and teacher information</li>
+  <li>Experimental condition (class type)</li><li>Norm-referenced and criterion-referenced achievement test scores</li>
+  <li>Motivation and self-concept scores</li>
+</ul>
+Follow up data on the students' performance from Grade 4 to High School are also available for some or all students. 
+
+The main purpose for the study is to answer the three following questions: 
+<ol>
+  <li>What are the effects of a reduced class size on the achievement (normed and
+criterion tests) and development (self-concept, attendance, etc.) of students in
+public elementary school grades (K-3)?</li>
+  <li> Is there a cumulative effects of being in a small class over an extended time
+(4 years) as compared with a one-year effect for students in a small class for
+one year?</li>
+  <li>Does a training program designed to help teachers take maximum advantage
+of small classes, or to use aides effectively, improve student performance as
+compared with teachers who have no special preparation for their altered
+conditions?</li>
+</ol> 
+However, many more questions of interests can be asked because of an abundance of variables and the study's longevity. From spatial questions to temporal questions, analyzing the STAR dataset could return an answer.
+
+For this report, we will focus on the question, "How Does Class Type Affect Students' Math Achievement In Grade 1?". Variables that will be included are the class type (<em>g1classtype</em>) and school (<em>g1schoolid</em>). We will also be identifying unique classes through different teachers' unique identifier (<em>g1tchid</em>), and through this retrieve an overall math achievement score, (<em>g1mathss</em>), which is scaled from the Stanford Achievement Test for Grade 1. This leaves the following data for analysis and further processing:
+```{r Background-Variables, echo=FALSE}
+##Remaining Data
+arrange(STAR,desc(g1tmathss))[, variables]%>%head()
+
+```
+More explanation and decision making regarding these variables will be available in Descriptive Analysis.
+</span>
+
+
+***
+
+# Descriptive analysis 
+
+```{r Descriptive Analysis, echo=FALSE, include=FALSE}
+##Removing NA Datapoints
+availID = which(!is.na(STAR$g1tmathss))
+DATA = STAR[availID,variables]
+sum(is.na(DATA))
+
+##Information of Appended Dataset
+(c("Number of Observations" = dim(DATA)[1],"Number of Variables" = dim(DATA)[2]))
+
+```
+<span>
+Choosing the correct predictors are crucial for an informative analysis. As mentioned, the two predictors for our question of interest will be class type (<em>g1classtype</em>) and school (<em>g1schoolid</em>). Using class type as a variable can directly answer the question of how class types affect students' math achievement in Grade 1.
+
+Class types in Grade 1 is named <em>g1classtype</em> in the dataset, and the class type are labelled as following:
+```{r Class Type, echo=FALSE}
+##Attributes and labeling of class types
+attr(STAR$g1classtype, "label")
+attr(STAR$g1classtype, "labels")
+
+```
+This means small class is labelled as 1 in the dataset, regular as 2, and regular+aide as 3.
+
+On the other hand, the participating schools are all given a unique school id, which are named <em>g1schoolid</em> in the dataset. Having the school id may be able to justify our data, because some school may provide better education and have better student achievement across all class types. Acknowledging the school will solve this problem and return better results.
+
+```{r Summary Statistics,echo=FALSE,include=FALSE}
+##Choosing Summary Statistic
+##Mean
+data2 = DATA %>%
+          group_by(g1tchid) %>%
+          summarise(mean_score=mean(g1tmathss), 
+                    g1schid=unique(g1schid), 
+                    g1classtype=unique(g1classtype)) %>%
+          mutate(class_type = as_factor(g1classtype, levels="labels"),
+                 school_id = as_factor(g1schid),
+                 teacher_id = as_factor(g1tchid), 
+                 .keep = "unused")
+##Median
+data3= DATA %>%
+          group_by(g1tchid) %>%
+          summarise(median_score=median(g1tmathss), # You can use other summary statistics
+                    g1schid=unique(g1schid), 
+                    g1classtype=unique(g1classtype)) %>%
+          mutate(class_type = as_factor(g1classtype, levels="labels"),
+                 school_id = as_factor(g1schid),
+                 teacher_id = as_factor(g1tchid), 
+                 .keep = "unused")
+##Difference between mean and median
+mdiff=data2$mean_score-data3$median_score
+plot(mdiff)
+mean(mdiff)
+##Mean and data2 will be used
+
+```
+For the outcomes, an overall achievement score of each class will be retrieved. Since every teacher is only responsible for their class, each class can be grouped by the teachers' IDs (<em>g1tchid</em>). After eliminating observations with NA variables, this can be completed through taking summary statistics of each class's math achievement. On choosing summary statistics, both mean and median reflects the average of the class. Through inspection between the difference between mean and median, even though they only have a mean difference of  0.94, however when we look at the plot of differences between mean and median, we could see the differences are scattered around:
+```{r Summary Statistics Decision,echo=FALSE}
+##Difference between mean and median
+mdiff=data2$mean_score-data3$median_score
+mean(mdiff)
+plot(mdiff)
+abline(h=mean(mdiff),col="red")
+##Median and data3 will be used
+
+```
+
+Since there are differences between the two, the median of each class will be employed, because the median are more accurate than mean when they do not share a similar value. The median value also will not be affected by outliers like the mean does.
+
+After the adjustments and summary of data, each teacher's class will be treated as a unit with the median of the class's scaled SAT scores. Hence, the updated data is as follows:
+```{r Updated Data, echo=FALSE}
+##Updated Data
+(c("Number of Observations" = dim(data3)[1],"Number of Variables" = dim(data3)[2]))
+data3
+
+```
+
+Furthermore, the relationship between the school indicator, class types, and math scaled scores in 1st grade will be investigated.
+
+First, a general box plot between the median scores and class types will generate a qualitative and visual idea on the relationship between the two:
+```{r Boxplot, echo=FALSE}
+##Generating Boxplot
+ggplot(data=data3, mapping=aes(x=class_type, y=median_score)) +
+  geom_boxplot() +
+  xlab("Class Type") +
+  ylab("Median Score of Each Class")
+```
+
+Through the box plot, small classes seems to perform better than the regular classes for the 25th quartile, median, and 75th quartile. On the other hand regular+aide class has a slight advantage over the regular class for the 25th quartile, median, and 75th quartile.
+
+```{r School Mean,echo=FALSE,include=FALSE}
+##School Mean
+unique(data3$school_id)
+tmp = data3 %>% 
+        group_by(school_id) %>%
+        summarise(sch_mean=mean(median_score)) 
+
+```
+Different schools tend to provide different education, or at least produces different quality of results. This can be proven through the calculation of mean school scores by taking the mean of class median scores calculated before.
+```{r summary, echo=FALSE}
+##School Mean Visualization
+summary(tmp$sch_mean)
+
+```
+As shown, the mean school scores are spread out, ranging from 480.8 to 579.2. This proves that there is a difference between schools, and that performing analysis with the school id as a a variable is meaningful.
+</span>
+
+*** 
+
+# Inferential analysis 
+
+<span>
+With median math scores as the outcome, class type and school as the two predictors, the only appropriate approach to model is the Two-way ANOVA model. This is because our predictors are discrete variables, which can only be used in ANOVA models but not regression models.
+
+Two-way ANOVA models are expressed as $Y_{ijk} = \mu_{..} + \alpha_{i} + \beta_{j} + \epsilon_{ijk}$, where the index $i$ represents the class type: small ($i=1$), regular ($i=2$), regular with aide ($i=3$), the index $j$ represents the school indicator ($j=1,2,...,76$), and $k$ represents every observation/class/teacher indicator ($k=1,2,...339$). For the ANOVA model, there are five assumptions (Gelman and Hill, 2006), which will be further explained and analyzed in Model Diagnostics:
+<ol>
+  <li>The data points are relevant with respect to the scientific question under investigation</li>
+  <li>The mean of the response variable is influenced additively (if not interaction term) and linearly by the factors</li>
+  <li>The errors are independent</li>
+  <li>The errors have the same variance</li>
+  <li>The errors are normally distributed</li>
+</ol>
+And three hypotheses needs to be examined:
+<ol>
+  <li>There is no difference in the means of factor A (class type)</li>
+  <li>There is no difference in means of factor B (school id)</li>
+  <li>There is no interaction between factors A and B</li>
+</ol>
+The interaction variable was not included in the previous expression, since the researchers of the STAR study mentioned the variables being independent from each other, however a test of interaction will still be held as proof. The decision rule states that if the p-value is less than the critical value of 0.05, the factor has a significant effect. The summary of the model is as follows if there is interaction:
+```{r ANOVA model with Interaction, echo=FALSE}
+## Two-Way Anova with Interaction
+modelI = aov(median_score~class_type+school_id+class_type:school_id, data=data3)
+summary(modelI)
+
+```
+
+As we can see, the interaction effect (class_type:school_id) has a p-value of 0.373, meaning it is not statistically significant. These results also reject the null hypotheses for hypothesis 1 and hypothesis 2. Since both p-values are significantly smaller than the critical value of 0.05, we are confident that the school and the class type will have a significant effect on student's achievement in Math SAT scores. This answers our basic question if class types have an effect on student math achievement with a resounding yes.
+
+After examining the hypotheses, the ANOVA model will analyze the effect of each variable relative to other choices. In other words, which class type has the better effect on student achievement. Through the Tukey Range Test we can assess this very question by finding the Honest Significant Difference for class types. Assumptions of this test include (Tukey, 1984):
+<ol>
+  <li>Observations are independent within and among groups</li>
+  <li>The groups for each mean in the test are normally distributed</li>
+  <li>There is equal within-group variance across the groups associated with each mean in the test (homogeneity of variance)</li>
+<ol>
+These assumptions will be further examined in Model Diagnostics. The summary of the Tukey Range Test is as following:
+```{r Tukey, echo=FALSE}
+##Tukey Range Test
+model1 = aov(median_score~class_type+school_id, data=data3)
+TukeyHSD(model1, "class_type")
+
+```
+
+With 95% confidence, the results show that the median of small class performs better than regular class by 7.1 to 17.9 points, while performing better than the regular+aide class by 5.3 to 16.4 points. The p-value for these two results are significantly low, proving that small classes have a definite advantage over the two types of regular classes. On the other hand, regular class and regular+aide class have a difference ranging from -4.0 to 7.4, and also a p-value of 0.77 which is extremely large. This reflects there is no significant difference between regular and regular-aide classes.   
+</span>
+
+***
+
+# Model Diagnostics and Sensitivity analysis 
+
+<span>
+For the two-way ANOVA model and Tukey Range Test, there is a total of 8 model diagnostics to address:  
+<ol>
+  <li>The data points are relevant with respect to the scientific question under investigation</li>
+  <li>The mean of the response variable is influenced additively (if not interaction term) and linearly by the factors</li>
+  <li>The errors are independent</li>
+  <li>The errors have the same variance</li>
+  <li>The errors are normally distributed</li>
+  <li>Observations are independent within and among groups</li>
+  <li>The groups for each mean in the test are normally distributed</li>
+  <li>There is equal within-group variance across the groups associated with each mean in the test (homogeneity of variance)</li>
+</ol>
+
+In truth, some of the assumptions are already proven and some assumptions for the model and Tukey Range Test overlaps. Therefore, repeating assumptions will not be repeatedly proven.
+
+The first assumption, "The data points are relevant with respect to the scientific question under investigation" has already been proven through the ANOVA test. Since both factors, class type and school, has a significant effect on the outcome, the median math score of a class, the data points in this analysis are definitely relevant to the question of interest.
+
+The second assumption, "The mean of the response variable is influenced additively (if not interaction term) and linearly by the factors" are also proven correct since it is how the data was modeled/expressed: $Y_{ijk} = \mu_{..} + \alpha_{i} + \beta_{j} + \epsilon_{ijk}$, which the factors are added instead of multiplied or divided.
+
+The third assumption, "The errors are independent" can be proven through the residual plot:
+```{r Residual Plot, echo=FALSE}
+##Residual Plot
+plot(model1,1)
+
+```
+
+There is no particular trend or pattern on the residual plot, therefore it is safe to assume that the errors are independent.
+
+The fourth assumption, "The errors have the same variance", can be proved through the Scale Location plot:
+```{r Scale Location, echo=FALSE}
+##Scale-Location
+plot(model1,3)
+
+```
+
+Similar to the Residual Plot, there is no pattern or trend in this plot, therefore the assumption of equal variance in errors can be assumed to be met.
+
+The fifth assumption, "The errors are normally distributed" can be tested through the Normal QQ plot:
+```{r Normal QQ, echo=FALSE}
+##Normal QQ
+plot(model1,2)
+
+```
+
+Most of the points does follow and are close to the Normal QQ line. Even though there are a slight tail on the right side, it can still be assumed that the errors are normally distributed.
+
+The sixth assumption, "Observations are independent within and among groups". The independence of observations is a problem for the data collectors, the STAR Project's prestige and the researchers' professionalism allows the belief that the observations are independent. However, since independence of observations are correlated to the independence of errors, which has already been proven true, it is safe to say this assumptions stands with proof.
+
+The seventh assumption "The groups for each mean in the test are normally distributed" are similar in nature to the normal distribution of errors, which has been proven correct.
+
+Last but not least, the eighth assumption, "There is equal within-group variance across the groups associated with each mean in the test (homogeneity of variance)", are also similar to the equal variance of errors, this proven correct.
+
+Other than assumption, alternative methods can be explored to see if similar results will be returned. In Descriptive Analysis, it was decided that the median of each class wile be employed over the mean. As an alternative method, the mean could be fitted into the ANOVA model to examine if there will be similar results.
+```{r Alternative Method, echo=FALSE}
+##Alternative Method for ANOVA
+modelIM = aov(mean_score~class_type+school_id+class_type:school_id, data=data2)
+summary(modelIM)
+
+```
+
+For the ANOVA summary, even though the p-values are not exactly the same, the same hypothesis results are retrieved, which are significant effects by class type and school, and no interaction effect. For the Tukey Range Test:
+```{r Alternative Tukey, echo=FALSE}
+##Alternative for Tukey
+model2 = aov(mean_score~class_type+school_id, data=data2)
+TukeyHSD(model2, "class_type")
+
+```
+
+Once again, similar results in small class having a significant advantage over the two other classes, and no significant difference in between regular and regular+aide classes.
+
+Model diagnostics and sensitivity analysis has enforced the results of this overall analysis, and strengthened the answer to the main question of interest. Class types most definitely has an effect on student math achievement, namely small classes having a positive impact on students' immediate math achievement in Grade 1 relative to the two other class types in question.
+
+</span>
+
+***
+
+# Causal interpretation 
+
+<span> From the results of the analysis, it is logical to conclude that small classes and better math achievement for Grade 1 students have a causal relationship. Even though, causal statements are often not fully plausible or conclusive because of undocumented external factors, I believe that its is plausible for Project STAR. The large sample size allows more accurate and reliable conclusions to be made. Arguments like the sample population may be of a similar demographic or ethnicity which prefers smaller classes cannot be made, because the wide sample size of STAR covers these kind of problems and factors.
+
+However, doubts or questions can always be asked to challenge the existing conclusions and results just like every other statement/observation in this world. This maybe claiming these conclusions to be spatially and temporally restrictive, and that the same results cannot be obtained in the modern world in a different part of the world. Or that Tennessee teachers in particular teach better in a smaller class sizes. There are a million more doubts and challenges that can be made towards the reliability or applicability of the STAR project. No study is perfect and there will be no perfect study. 
+</span>
+
+***
+
+# Discussion 
+
+<span>
+The STAR project remains to be one of the most overwhelming and all rounded study on human behavior in recent history, no matter spatially or temporally. After choosing the relevant variables, fitting the correct models and analyzing the models themselves, a conclusion can be reached for out question of interest, "How Does Class Type Affect Students’ Math Achievement In Grade 1?"
+
+The conclusion for this report matches the hypothesis that smaller class will have a postie and immediate effect on Grade 1 students' math achievement. As proven in the Two-way ANOVA model, the smaller class type have a significant advantage over the two other class types, regular and regular+aide. It was also concluded that there is no significant different between regular class and regular+aide classes, this means schools should not utilize regular+aide classes because they do not have a significant impact, but still costs more financially. 
+
+The findings of this analysis however does not recommend schools to utilize smaller classes more or not. Small classes are way more expensive to operate than regular classes (Folger and Breda, 1989), with the tight budgets of public school, and problems in the education industry, such as the decreasing number of teachers, smaller classes may not be possible to operate. Especially for developing regions that desperately needs education for long term growth, smaller classes may be too much to ask for. As mentioned before, education is an investment for long run success, the cost effectiveness of class types is very complicated with a lot of external factors when it comes to an quantifying the monetary and societal effect in the long run. A research on a topic that explores if operating more expensive, but more effective class types may take a even longer time and a larger scale to operate. A study like that may even be impossible with globalization and capital moving around more than the history of time. Investments in local human capital may not directly equal a return in local growth in the long run, especially for developing regions.
+
+Returning to more probable analysis and utilizing the STAR dataset, a lot more variables can be considered for student's academic achievement. While this report only focused on Grade 1 math achievements and how they are affected by class types and schools, variables like geographical location of the school or the continuity/lack of continuity in the same class type can be further evaluated. There are many more questions of interests that can be answered by the STAR project.
+
+This report is successful and conclusive in general, however there are limitations of its own. After all, only math achievement scores were analyzed and only for Grade 1s, the exact effect small class types has on other age groups are only projections and logical predictions that are made. This limitation can be simply solved by extending the analysis to the other parts of the STAR dataset. Another limitation is that the amount of class types can be argued to be limited with only three. If there were a class type of small+aide, we could analyse how aide is effective on class size too. The number of final data points, 339, though was enough, could be a lot more. More data points would have allowed a even higher degree of reliability. Once again, there is no perfect study and there is always improvements to be made, that being said the analysis and conclusion of this report has been successful.
+</span>
+
+***
+
+# Acknowledgement {-}
+<ol>
+  <li>Dr. Shizhe Chen</li>
+  <li>TA Ms. Zitong Zhang</li>
+</ol>
+
+***
+
+# Reference {-}
+<ol>
+
+  <li>Achilles, C., Bain, H., Bellott, F., Boyd-Zaharias, J., Finn, J., Folger, J., Johnston, J., Word, E., 2008, "Tennessee's Student Teacher Achievement Ratio (STAR) project", https://doi.org/10.7910/DVN/SIWH9F, Harvard Dataverse, V1, UNF:3:Ji2Q+9HCCZAbw3csOdMNdA== [fileUNF]</li>
+  <li>Becker, Gary S., 2009. Human capital: A theoretical and empirical analysis, with special reference to education. University of Chicago press.</li>
+  <li>Chingos, M. and Whitehurst, G., 2011. Class Size: What Research Says and What it Means for State Policy. [online] Washington D.C.: Brookings Institution. Available at: <https://www.brookings.edu/research/class-size-what-research-says-and-what-it-means-for-state-policy/>.</li>
+  <li>Finn, J., Boyd-Zaharias, J., Fish, R. and Gerber, S., 2007. Project STAR and Beyond: Database User's Guide. [ebook] Lebanon, Tennessee: HEROS, Incorporated. Available at: <https://dataverse.harvard.edu/file.xhtml?fileId=666705&version=1.0>.</li>
+  <li>Folger, J., and Breda, C., 1989. "Evidence from Project STAR about class size and student achievement." Peabody Journal of Education 67.1: 17-33.</li>
+  <li>Gelman, A., Hill, J. ,2006. Data Analysis Using Regression and Multilevel/Hierarchical Models. Cambridge University Press. pp. 45–46. ISBN 978-0521867061.</li>
+  <li>Glen, S/. "Tukey Test / Tukey Procedure / Honest Significant Difference" From StatisticsHowTo.com: Elementary Statistics for the rest of us! https://www.statisticshowto.com/tukey-test-honest-significant-difference/</li>
+  <li>Imbens, G., & Rubin, D., 2015. Stratified Randomized Experiments. In Causal Inference for Statistics, Social, and Biomedical Sciences: An Introduction (pp. 187-218). Cambridge: Cambridge University Press. doi:10.1017/CBO9781139025751.010</li>
+  <li>Palardy, Gregory J., and Russell W. Rumberger. “Teacher Effectiveness in First Grade: The Importance of Background Qualifications, Attitudes, and Instructional Practices for Student Learning.” Educational Evaluation and Policy Analysis, vol. 30, no. 2, 2008, pp. 111–140. JSTOR, www.jstor.org/stable/30128057.</li>
+  <li>Tukey, J., 1984. The collected works of John W. Tukey. Vol. 1. Taylor & Francis.</li>
+  <li>Zhang, Z., 2021. Discussion_5.html. [html] Available at: <https://canvas.ucdavis.edu/courses/532356/files/11616509?wrap=1&fd_cookie_set=1>.</li>
+
+</ol>
+
+***
+
+# Appendix {-}
+```{r get-labels, echo=FALSE}
+
+##Print all codes in appendix
+labs = knitr::all_labels()
+labs = setdiff(labs, c("Session Info"))
+```
+
+```{r all-code, ref.label=labs, eval=FALSE}
+```
+
+***
+
+# Session info {-}
+```{r Session Info}
+sessionInfo()
+```
